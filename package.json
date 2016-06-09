@@ -1,7 +1,7 @@
 {
     "name": "console-stripe",
     "main": "main",
-    "version": "0.2.2rc",
+    "version": "0.2.2rc1",
     "author": {
         "name": "Ståle Raknes",
         "email": "stale@raknes.net",

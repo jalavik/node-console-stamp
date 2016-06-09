@@ -22,7 +22,7 @@ This is just å copy of [Console-stamp](https://npmjs.org/package/console-stamp)
 ### Example 
 
 ```
-require( "console-stamp" )( console );
+require( "console-stripe" )( console );
 ```
 
 ![Console](gfx/console2.png)
