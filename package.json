@@ -1,5 +1,5 @@
 {
-    "name": "console-stamp",
+    "name": "console-stripe",
     "main": "main",
     "version": "0.2.2",
     "author": {
@@ -25,7 +25,7 @@
             "url": "https://github.com/Gameleon12"
         }
     ],
-    "description": "Patch NodeJS console methods in order to add timestamp information by pattern",
+    "description": "A variant of console-stamp. Patch NodeJS console methods in order to add timestamp information by pattern",
     "keywords": [
         "console",
         "timestamp",

@@ -1,7 +1,7 @@
 /*jshint node:true, bitwise:false */
 /**
  *
- * Node Console stamp by Ståle Raknes
+ * Node Console Stripe by Ståle Raknes
  *
  */
 
@@ -12,6 +12,14 @@ var merge = require( "merge" );
 var chalk = require( "chalk" );
 var defaults = require( "./defaults.json" );
 var util = require( 'util' );
+var stripe = {
+    error: chalk.red,
+    warn: chalk.yellow,
+    info: chalk.blue,
+    log: function(str){
+        return str;
+    }
+};
 
 module.exports = function ( con, options, prefix_metadata ) {
 
@@ -38,44 +46,6 @@ module.exports = function ( con, options, prefix_metadata ) {
         return !~options.exclude.indexOf( m );
     } );
 
-    //SET COLOR THEME START
-    var noColor = function ( str ) {
-        return str;
-    }; //Default behaviour (no color)
-
-    var getColor = function ( origColor ) {
-        //If color is a chalk function already, just return it
-        if ( typeof origColor === 'function' ) {
-            return origColor;
-        }
-        //If color is an string, check if a function in chalk exists
-        if ( typeof origColor === 'string' ) {
-            return chalk["" + origColor] ? chalk["" + origColor] : noColor;
-        }
-        //If color is an array, check the contents for color strings
-        if ( Array.isArray( origColor ) ) {
-            if ( origColor.length > 0 ) {
-                var color = chalk;
-                for ( var i = 0; i < origColor.length; i++ ) {
-                    if ( typeof origColor[i] === 'string' ) {
-                        color = color["" + origColor[i]];
-                    }
-                }
-                return color;
-            }
-            else {
-                return noColor;
-            }
-        }
-        return noColor;
-    };
-
-    var colorTheme = {};
-    colorTheme.stamp = getColor( options.colors.stamp );
-    colorTheme.label = getColor( options.colors.label );
-    colorTheme.metadata = getColor( options.colors.metadata );
-    //SET COLOR THEME END
-
     var original_functions = [];
 
     var slice = Array.prototype.slice;
@@ -88,12 +58,24 @@ module.exports = function ( con, options, prefix_metadata ) {
 
         con[f] = function () {
 
-            var prefix = colorTheme.stamp( "[" + dateFormat( pattern ) + "]" ) + " ";
+            var stColor;
+
+            switch (f){
+                case "error":
+                case "warn":
+                case "info":
+                    stColor = stripe[f];
+                    break;
+                default:
+                    stColor = stripe.log;
+            }
+
+            var prefix = stColor( "[" + dateFormat( pattern ) + "]" ) + " ";
             var args = slice.call( arguments );
 
             // Add label if flag is set
             if ( options.label ) {
-                prefix += colorTheme.label( "[" + f.toUpperCase() + "]" ) + "      ".substr( f.length );
+                prefix += stColor( "[" + f.toUpperCase() + "]" ) + "      ".substr( f.length );
             }
 
             // Add metadata if any
@@ -107,7 +89,7 @@ module.exports = function ( con, options, prefix_metadata ) {
             }
 
             if ( metadata ) {
-                prefix += colorTheme.metadata( metadata ) + " "; //Metadata
+                prefix += stColor( metadata ) + " "; //Metadata
             }
 
             if ( f === "error" || f === "warn" || ( f === "assert" && !args[0] ) ) {
@@ -115,6 +97,10 @@ module.exports = function ( con, options, prefix_metadata ) {
             } else if ( f !== "assert" ) {
                 process.stdout.write( prefix );
             }
+
+            args.forEach(function(str,index){
+                args[index] = stColor(str);
+            });
 
             return org.apply( con, args );
 
