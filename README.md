@@ -25,4 +25,4 @@ This is just å copy of [Console-stamp](https://npmjs.org/package/console-stamp)
 require( "console-stamp" )( console );
 ```
 
-![Console](gfx/console.png)
+![Console](gfx/console2.png)
