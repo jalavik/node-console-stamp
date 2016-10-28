@@ -39,7 +39,7 @@
     ],
     "repository": {
         "type": "git",
-        "url": "http://github.com/starak/node-console-stamp.git"
+        "url": "https://github.com/starak/node-console-stamp/tree/stripe"
     },
     "license": "MIT",
     "dependencies": {
