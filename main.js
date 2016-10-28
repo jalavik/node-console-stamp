@@ -21,6 +21,31 @@ var stripe = {
     }
 };
 
+var levelPriorities = {
+    log: 4,
+    info: 3,
+    warn: 2,
+    error: 1,
+    assert: 2,
+    dir: 4
+};
+
+function getAllowedLogFunctions( level ) {
+    var logFunctions = [],
+        levelPriority = levelPriorities[level];
+
+    for ( var logFunction in levelPriorities ) {
+        if ( levelPriorities.hasOwnProperty( logFunction ) ) {
+            if ( levelPriority >= levelPriorities[logFunction] ) {
+                logFunctions.push( logFunction );
+            }
+        }
+
+    }
+
+    return logFunctions;
+}
+
 module.exports = function ( con, options, prefix_metadata ) {
 
     // If the console is patched already, restore it
@@ -40,10 +65,18 @@ module.exports = function ( con, options, prefix_metadata ) {
         prefix_metadata = prefix_metadata || options.metadata;
     }
 
-    var dateFormat = options.formatter || defaultDateFormat;
+    var stdout = options.stdout;
+    var stderr = options.stderr || options.stdout;
+
+    var dateFormat = options.formatter || defaultDateFormat,
+        allowedLogFunctions = getAllowedLogFunctions( options.level );
+
+    options.disable = options.disable.concat( options.include.filter( function ( m ) {
+        return !~options.exclude.indexOf( m ) && !~allowedLogFunctions.indexOf( m );
+    } ) );
 
     options.include = options.include.filter( function filter( m ) {
-        return !~options.exclude.indexOf( m );
+        return !~options.exclude.indexOf( m ) && !~options.disable.indexOf( m );
     } );
 
     var original_functions = [];
@@ -93,9 +126,9 @@ module.exports = function ( con, options, prefix_metadata ) {
             }
 
             if ( f === "error" || f === "warn" || ( f === "assert" && !args[0] ) ) {
-                process.stderr.write( prefix );
+                ( stderr || process.stderr ).write( prefix );
             } else if ( f !== "assert" ) {
-                process.stdout.write( prefix );
+                ( stdout || process.stdout ).write( prefix );
             }
 
             args.forEach(function(str,index){
@@ -105,6 +138,14 @@ module.exports = function ( con, options, prefix_metadata ) {
             return org.apply( con, args );
 
         };
+    } );
+
+    options.disable.forEach( function ( f ) {
+
+        original_functions.push( [f, con[f]] );
+
+        con[f] = function () { };
+
     } );
 
     con.restoreConsole = function () {
